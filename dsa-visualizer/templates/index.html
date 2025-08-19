@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-family: inherit;
+            font-size: 1em;
+        }
+
+        .tab-btn.active {
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .control-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        input, button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+        }
+
+        input {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .secondary-btn {
+            background: linear-gradient(45deg, #74b9ff, #0984e3) !important;
+        }
+
+        .success-btn {
+            background: linear-gradient(45deg, #00b894, #00a085) !important;
+        }
+
+        .visualization-area {
+            min-height: 300px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .array-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .array-element {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.2em;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .array-element.comparing {
+            background: linear-gradient(45deg, #fdcb6e, #e17055);
+            transform: scale(1.1);
+        }
+
+        .array-element.swapping {
+            background: linear-gradient(45deg, #ff7675, #d63031);
+            transform: scale(1.1);
+        }
+
+        .array-element.found {
+            background: linear-gradient(45deg, #00b894, #00a085);
+            transform: scale(1.2);
+        }
+
+        .stack-container, .queue-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            min-height: 200px;
+        }
+
+        .queue-container {
+            flex-direction: row;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .stack-element, .queue-element {
+            width: 80px;
+            height: 40px;
+            background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+        }
+
+        .stack-element.new {
+            animation: slideInFromTop 0.5s ease-out;
+        }
+
+        .queue-element.new {
+            animation: slideInFromRight 0.5s ease-out;
+        }
+
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInFromRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .message-area {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speed-slider {
+            width: 150px;
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            outline: none;
+            appearance: none;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .binary-search-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .search-pointer {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .left-pointer {
+            background: rgba(255, 107, 107, 0.3);
+        }
+
+        .right-pointer {
+            background: rgba(116, 185, 255, 0.3);
+        }
+
+        .mid-pointer {
+            background: rgba(253, 203, 110, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .array-element {
+                width: 40px;
+                height: 40px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 DSA Visualizer</h1>
+            <p>Interactive Data Structures & Algorithms Visualization</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="showTab('arrays')">Arrays & Sorting</button>
+            <button class="tab-btn" onclick="showTab('stack')">Stack</button>
+            <button class="tab-btn" onclick="showTab('queue')">Queue</button>
+        </div>
+
+        <!-- Arrays Tab -->
+        <div id="arrays" class="tab-content active">
+            <div class="control-panel">
+                <div class="control-group">
+                    <input type="text" id="arrayInput" placeholder="Enter numbers (e.g., 5,3,8,1,9)" style="flex: 1;">
+                    <button onclick="setArray()">Set Array</button>
+                    <button onclick="generateRandomArray()" class="secondary-btn">Random Array</button>
+                </div>
+                <div class="control-group">
+                    <button onclick="startBubbleSort()" class="success-btn">Bubble Sort</button>
+                    <input type="number" id="searchTarget" placeholder="Search target" style="width: 150px;">
+                    <button onclick="startBinarySearch()" class="success-btn">Binary Search</button>
+                    <div class="speed-control">
+                        <label>Speed:</label>
+                        <input type="range" id="speedSlider" class="speed-slider" min="1" max="10" value="5">
+                        <span id="speedValue">5</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="visualization-area">
+                <div class="array-container" id="arrayContainer">
+                    <div class="array-element">Click "Set Array" to begin</div>
+                </div>
+                <div class="binary-search-info" id="searchInfo" style="display: none;">
+                    <div class="search-pointer left-pointer">Left: <span id="leftPtr">-</span></div>
+                    <div class="search-pointer mid-pointer">Mid: <span id="midPtr">-</span></div>
+                    <div class="search-pointer right-pointer">Right: <span id="rightPtr">-</span></div>
+                </div>
+            </div>
+            
+            <div class="message-area" id="arrayMessage">
+                Welcome to Array Visualizer! Enter an array or generate a random one to get started.
+            </div>
+        </div>
+
+        <!-- Stack Tab -->
+        <div id="stack" class="tab-content">
+            <div class="control-panel">
+                <div class="control-group">
+                    <input type="number" id="stackInput" placeholder="Enter value to push">
+                    <button onclick="stackPush()">Push</button>
+                    <button onclick="stackPop()" class="secondary-btn">Pop</button>
+                    <button onclick="stackPeek()" class="success-btn">Peek</button>
+                    <button onclick="stackClear()">Clear</button>
+                </div>
+            </div>
+            
+            <div class="visualization-area">
+                <div class="stack-container" id="stackContainer">
+                    <div style="font-size: 1.2em; opacity: 0.7;">Stack (LIFO - Last In, First Out)</div>
+                </div>
+            </div>
+            
+            <div class="message-area" id="stackMessage">
+                Stack is empty. Push some elements to see the visualization!
+            </div>
+        </div>
+
+        <!-- Queue Tab -->
+        <div id="queue" class="tab-content">
+            <div class="control-panel">
+                <div class="control-group">
+                    <input type="number" id="queueInput" placeholder="Enter value to enqueue">
+                    <button onclick="queueEnqueue()">Enqueue</button>
+                    <button onclick="queueDequeue()" class="secondary-btn">Dequeue</button>
+                    <button onclick="queueClear()">Clear</button>
+                </div>
+            </div>
+            
+            <div class="visualization-area">
+                <div style="font-size: 1.2em; opacity: 0.7; margin-bottom: 20px;">Queue (FIFO - First In, First Out)</div>
+                <div class="queue-container" id="queueContainer">
+                </div>
+            </div>
+            
+            <div class="message-area" id="queueMessage">
+                Queue is empty. Enqueue some elements to see the visualization!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentArray = [];
+        let stackData = [];
+        let queueData = [];
+        let isAnimating = false;
+        let animationSpeed = 500;
+
+        // Initialize speed control
+        document.getElementById('speedSlider').addEventListener('input', function() {
+            const speed = this.value;
+            document.getElementById('speedValue').textContent = speed;
+            animationSpeed = 1100 - (speed * 100); // Inverse relationship
+        });
+
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Mock API functions for demonstration
+        function mockApiCall(endpoint, data = null) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    if (endpoint.includes('/array/set')) {
+                        resolve({ array: data.array, message: 'Array set successfully' });
+                    } else if (endpoint.includes('/array/generate-random')) {
+                        const randomArray = Array.from({length: data.size}, () => Math.floor(Math.random() * data.max_value) + 1);
+                        resolve({ array: randomArray, message: 'Random array generated' });
+                    } else if (endpoint.includes('/array/bubble-sort')) {
+                        resolve(generateBubbleSortSteps(currentArray));
+                    } else if (endpoint.includes('/array/binary-search')) {
+                        resolve(generateBinarySearchSteps(currentArray, data.target));
+                    } else if (endpoint.includes('/stack/push')) {
+                        stackData.push(data.value);
+                        resolve({ stack: [...stackData], message: `Pushed ${data.value} to stack` });
+                    } else if (endpoint.includes('/stack/pop')) {
+                        if (stackData.length === 0) {
+                            resolve({ stack: [], message: 'Stack is empty! Cannot pop.' });
+                        } else {
+                            const popped = stackData.pop();
+                            resolve({ stack: [...stackData], message: `Popped ${popped} from stack` });
+                        }
+                    } else if (endpoint.includes('/stack/peek')) {
+                        if (stackData.length === 0) {
+                            resolve({ message: 'Stack is empty! Nothing to peek.' });
+                        } else {
+                            resolve({ message: `Top element: ${stackData[stackData.length - 1]}` });
+                        }
+                    } else if (endpoint.includes('/stack/clear')) {
+                        stackData = [];
+                        resolve({ stack: [], message: 'Stack cleared' });
+                    } else if (endpoint.includes('/queue/enqueue')) {
+                        queueData.push(data.value);
+                        resolve({ queue: [...queueData], message: `Enqueued ${data.value} to queue` });
+                    } else if (endpoint.includes('/queue/dequeue')) {
+                        if (queueData.length === 0) {
+                            resolve({ queue: [], message: 'Queue is empty! Cannot dequeue.' });
+                        } else {
+                            const dequeued = queueData.shift();
+                            resolve({ queue: [...queueData], message: `Dequeued ${dequeued} from queue` });
+                        }
+                    } else if (endpoint.includes('/queue/clear')) {
+                        queueData = [];
+                        resolve({ queue: [], message: 'Queue cleared' });
+                    }
+                }, 100);
+            });
+        }
+
+        function generateBubbleSortSteps(arr) {
+            const steps = [];
+            const sortedArray = [...arr];
+            const n = sortedArray.length;
+            
+            for (let i = 0; i < n - 1; i++) {
+                for (let j = 0; j < n - i - 1; j++) {
+                    // Comparing step
+                    steps.push({
+                        array: [...sortedArray],
+                        indices: [j, j + 1],
+                        type: 'comparing',
+                        message: `Comparing ${sortedArray[j]} and ${sortedArray[j + 1]}`
+                    });
+                    
+                    if (sortedArray[j] > sortedArray[j + 1]) {
+                        // Swapping step
+                        [sortedArray[j], sortedArray[j + 1]] = [sortedArray[j + 1], sortedArray[j]];
+                        steps.push({
+                            array: [...sortedArray],
+                            indices: [j, j + 1],
+                            type: 'swapping',
+                            message: `Swapped ${sortedArray[j + 1]} and ${sortedArray[j]}`
+                        });
+                    }
+                }
+            }
+            
+            steps.push({
+                array: [...sortedArray],
+                indices: [],
+                type: 'completed',
+                message: 'Bubble sort completed!'
+            });
+            
+            return { steps };
+        }
+
+        function generateBinarySearchSteps(arr, target) {
+            const steps = [];
+            const sortedArray = [...arr].sort((a, b) => a - b);
+            let left = 0;
+            let right = sortedArray.length - 1;
+            let found = false;
+            let foundIndex = -1;
+            
+            steps.push({
+                array: [...sortedArray],
+                message: `Searching for ${target} in sorted array`,
+                left: left,
+                right: right,
+                mid: Math.floor((left + right) / 2)
+            });
+            
+            while (left <= right && !found) {
+                const mid = Math.floor((left + right) / 2);
+                
+                steps.push({
+                    array: [...sortedArray],
+                    message: `Checking middle element at index ${mid}: ${sortedArray[mid]}`,
+                    left: left,
+                    right: right,
+                    mid: mid
+                });
+                
+                if (sortedArray[mid] === target) {
+                    found = true;
+                    foundIndex = mid;
+                    steps.push({
+                        array: [...sortedArray],
+                        message: `Found ${target} at index ${mid}!`,
+                        left: left,
+                        right: right,
+                        mid: mid,
+                        type: 'found',
+                        found_index: mid
+                    });
+                } else if (sortedArray[mid] < target) {
+                    left = mid + 1;
+                    steps.push({
+                        array: [...sortedArray],
+                        message: `${sortedArray[mid]} < ${target}, searching right half`,
+                        left: left,
+                        right: right,
+                        mid: left <= right ? Math.floor((left + right) / 2) : -1
+                    });
+                } else {
+                    right = mid - 1;
+                    steps.push({
+                        array: [...sortedArray],
+                        message: `${sortedArray[mid]} > ${target}, searching left half`,
+                        left: left,
+                        right: right,
+                        mid: left <= right ? Math.floor((left + right) / 2) : -1
+                    });
+                }
+            }
+            
+            if (!found) {
+                steps.push({
+                    array: [...sortedArray],
+                    message: `${target} not found in the array`,
+                    left: left,
+                    right: right,
+                    mid: -1
+                });
+            }
+            
+            return { steps };
+        }
+
+        // Array Functions
+        async function setArray() {
+            const input = document.getElementById('arrayInput').value;
+            if (!input.trim()) return;
+            
+            const arr = input.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+            const result = await mockApiCall('/api/array/set', { array: arr });
+            
+            if (result.array) {
+                currentArray = result.array;
+                displayArray(currentArray);
+                document.getElementById('arrayMessage').textContent = `Array set with ${arr.length} elements`;
+            }
+        }
+
+        async function generateRandomArray() {
+            const result = await mockApiCall('/api/array/generate-random', { size: 8, max_value: 50 });
+            
+            if (result.array) {
+                currentArray = result.array;
+                displayArray(currentArray);
+                document.getElementById('arrayInput').value = currentArray.join(', ');
+                document.getElementById('arrayMessage').textContent = `Generated random array with ${result.array.length} elements`;
+            }
+        }
+
+        function displayArray(arr, highlightIndices = [], className = '') {
+            const container = document.getElementById('arrayContainer');
+            container.innerHTML = '';
+            
+            if (arr.length === 0) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'array-element';
+                placeholder.textContent = 'Click "Set Array" to begin';
+                container.appendChild(placeholder);
+                return;
+            }
+            
+            arr.forEach((value, index) => {
+                const element = document.createElement('div');
+                element.className = 'array-element';
+                element.textContent = value;
+                
+                if (highlightIndices.includes(index)) {
+                    element.classList.add(className);
+                }
+                
+                container.appendChild(element);
+            });
+        }
+
+        async function startBubbleSort() {
+            if (isAnimating || currentArray.length === 0) return;
+            isAnimating = true;
+            
+            const result = await mockApiCall('/api/array/bubble-sort');
+            
+            if (result.steps) {
+                for (const step of result.steps) {
+                    displayArray(step.array, step.indices, step.type);
+                    document.getElementById('arrayMessage').textContent = step.message;
+                    await new Promise(resolve => setTimeout(resolve, animationSpeed));
+                }
+                currentArray = result.steps[result.steps.length - 1].array;
+            }
+            
+            isAnimating = false;
+        }
+
+        async function startBinarySearch() {
+            const target = parseInt(document.getElementById('searchTarget').value);
+            if (isNaN(target) || currentArray.length === 0) return;
+            
+            isAnimating = true;
+            document.getElementById('searchInfo').style.display = 'flex';
+            
+            const result = await mockApiCall('/api/array/binary-search', { target: target });
+            
+            if (result.steps) {
+                for (const step of result.steps) {
+                    displayArray(step.array);
+                    document.getElementById('arrayMessage').textContent = step.message;
+                    
+                    // Update search pointers
+                    if (step.left !== undefined) document.getElementById('leftPtr').textContent = step.left;
+                    if (step.right !== undefined) document.getElementById('rightPtr').textContent = step.right;
+                    if (step.mid !== undefined && step.mid !== -1) document.getElementById('midPtr').textContent = step.mid;
+                    
+                    // Highlight elements
+                    if (step.type === 'found') {
+                        displayArray(step.array, [step.found_index], 'found');
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, animationSpeed));
+                }
+            }
+            
+            isAnimating = false;
+            setTimeout(() => {
+                document.getElementById('searchInfo').style.display = 'none';
+            }, 2000);
+        }
+
+        // Stack Functions
+        async function stackPush() {
+            const value = parseInt(document.getElementById('stackInput').value);
+            if (isNaN(value)) return;
+            
+            const result = await mockApiCall('/api/stack/push', { value: value });
+            displayStack(result.stack);
+            document.getElementById('stackMessage').textContent = result.message;
+            document.getElementById('stackInput').value = '';
+        }
+
+        async function stackPop() {
+            const result = await mockApiCall('/api/stack/pop');
+            displayStack(result.stack);
+            document.getElementById('stackMessage').textContent = result.message;
+        }
+
+        async function stackPeek() {
+            const result = await mockApiCall('/api/stack/peek');
+            document.getElementById('stackMessage').textContent = result.message;
+        }
+
+        async function stackClear() {
+            const result = await mockApiCall('/api/stack/clear');
+            displayStack(result.stack);
+            document.getElementById('stackMessage').textContent = result.message;
+        }
+
+        function displayStack(stack) {
+            const container = document.getElementById('stackContainer');
+            container.innerHTML = '<div style="font-size: 1.2em; opacity: 0.7;">Stack (LIFO - Last In, First Out)</div>';
+            
+            // Display stack from top to bottom
+            for (let i = stack.length - 1; i >= 0; i--) {
+                const element = document.createElement('div');
+                element.className = 'stack-element';
+                element.textContent = stack[i];
+                
+                if (i === stack.length - 1) {
+                    element.classList.add('new');
+                }
+                
+                container.appendChild(element);
+            }
+            
+            if (stack.length === 0) {
+                const placeholder = document.createElement('div');
+                placeholder.textContent = 'Empty Stack';
+                placeholder.style.opacity = '0.5';
+                container.appendChild(placeholder);
+            }
+        }
+
+        // Queue Functions
+        async function queueEnqueue() {
+            const value = parseInt(document.getElementById('queueInput').value);
+            if (isNaN(value)) return;
+            
+            const result = await mockApiCall('/api/queue/enqueue', { value: value });
+            displayQueue(result.queue);
+            document.getElementById('queueMessage').textContent = result.message;
+            document.getElementById('queueInput').value = '';
+        }
+
+        async function queueDequeue() {
+            const result = await mockApiCall('/api/queue/dequeue');
+            displayQueue(result.queue);
+            document.getElementById('queueMessage').textContent = result.message;
+        }
+
+        async function queueClear() {
+            const result = await mockApiCall('/api/queue/clear');
+            displayQueue(result.queue);
+            document.getElementById('queueMessage').textContent = result.message;
+        }
+
+        function displayQueue(queue) {
+            const container = document.getElementById('queueContainer');
+            container.innerHTML = '';
+            
+            if (queue.length === 0) {
+                const placeholder = document.createElement('div');
+                placeholder.textContent = 'Empty Queue';
+                placeholder.style.opacity = '0.5';
+                container.appendChild(placeholder);
+                return;
+            }
+            
+            // Add "Front" label
+            const frontLabel = document.createElement('div');
+            frontLabel.textContent = 'Front →';
+            frontLabel.style.opacity = '0.7';
+            frontLabel.style.marginRight = '10px';
+            container.appendChild(frontLabel);
+            
+            // Display queue elements
+            queue.forEach((value, index) => {
+                const element = document.createElement('div');
+                element.className = 'queue-element';
+                element.textContent = value;
+                
+                if (index === queue.length - 1) {
+                    element.classList.add('new');
+                }
+                
+                container.appendChild(element);
+            });
+            
+            // Add "Rear" label
+            const rearLabel = document.createElement('div');
+            rearLabel.textContent = '← Rear';
+            rearLabel.style.opacity = '0.7';
+            rearLabel.style.marginLeft = '10px';
+            container.appendChild(rearLabel);
+        }
+
+        // Initialize with empty displays
+        displayArray([]);
+        displayStack([]);
+        displayQueue([]);
+    </script>
+</body>
+</html>
